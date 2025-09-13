@@ -1,0 +1,123 @@
+-- Загрузка библиотеки Fluent (предполагая, что она загружается из модуля или вставляется в игру)
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+-- Создание окна Fluent
+local Window = Fluent:CreateWindow({
+    Title = "Spinbot",
+    SubTitle = "by @zood3llotgk",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(500, 300),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.RightControl
+})
+
+-- Добавление вкладок
+local Tabs = {
+    Main = Window:AddTab({ Title = "Main", Icon = "rbxassetid://4483362458" })
+}
+
+-- Переменные
+local player = game.Players.LocalPlayer
+local spinSpeed = 100 -- Скорость вращения по умолчанию в градусах за кадр
+local isSpinning = false
+local spinConnection = nil
+local currentCharacter = nil
+local hrp = nil
+
+-- Функция для запуска вращения
+local function startSpin()
+    if spinConnection then return end
+    if not hrp then return end
+    
+    spinConnection = game:GetService("RunService").RenderStepped:Connect(function()
+        if isSpinning and hrp and hrp.Parent then
+            hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(spinSpeed), 0)
+        end
+    end)
+end
+
+-- Функция для остановки вращения
+local function stopSpin()
+    if spinConnection then
+        spinConnection:Disconnect()
+        spinConnection = nil
+    end
+end
+
+-- Функция для обновления HRP при смене персонажа
+local function updateCharacter()
+    currentCharacter = player.Character
+    if currentCharacter then
+        hrp = currentCharacter:WaitForChild("HumanoidRootPart", 5)
+        if isSpinning and hrp then
+            startSpin()
+        end
+    end
+end
+
+-- Обработка добавления персонажа (респавн)
+player.CharacterAdded:Connect(function()
+    stopSpin() -- Остановка старого соединения, если есть
+    wait(1) -- Небольшая задержка для полной загрузки персонажа
+    updateCharacter() -- Перезапуск на новом персонаже
+end)
+
+-- Инициализация при запуске
+if player.Character then
+    updateCharacter()
+end
+
+-- Элементы GUI
+local Section = Tabs.Main:AddSection("Управление Spinbot")
+
+-- Тоггл для вращения
+Tabs.Main:AddToggle("EnableSpin", {
+    Title = "Включить Spinbot",
+    Description = "Включить/выключить spinbot",
+    Default = false,
+    Callback = function(value)
+        isSpinning = value
+        if value and hrp then
+            startSpin()
+        else
+            stopSpin()
+        end
+    end
+})
+
+-- Слайдер для скорости
+Tabs.Main:AddSlider("SpinSpeed", {
+    Title = "Скорость Вращения",
+    Description = "Градусы за кадр (1-300)",
+    Default = 100,
+    Min = 1,
+    Max = 300,
+    Rounding = 0,
+    Callback = function(value)
+        spinSpeed = value
+    end
+})
+
+-- Менеджер сохранений (опционально)
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+
+InterfaceManager:SetFolder("FluentScriptHub")
+SaveManager:SetFolder("FluentScriptHub")
+
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = "Spinbot",
+    Content = "Скрипт загружен успешно.",
+    Duration = 5
+})
