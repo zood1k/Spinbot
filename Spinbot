@@ -1,4 +1,4 @@
--- Загрузка библиотеки Fluent (предполагая, что она загружается из модуля или вставляется в игру)
+-- Загрузка библиотеки Fluent
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
@@ -11,7 +11,7 @@ local Window = Fluent:CreateWindow({
     Size = UDim2.fromOffset(500, 300),
     Acrylic = true,
     Theme = "Dark",
-    MinimizeKey = Enum.KeyCode.RightControl
+    MinimizeKey = Enum.KeyCode.Insert -- Изменено на Insert
 })
 
 -- Добавление вкладок
